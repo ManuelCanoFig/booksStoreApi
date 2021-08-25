@@ -1,6 +1,5 @@
 package mf.ibm.restapi.controllers;
 
-import com.fasterxml.jackson.databind.annotation.JsonAppend;
 import mf.ibm.restapi.model.Book;
 import mf.ibm.restapi.services.BookService;
 import org.json.JSONArray;
@@ -11,8 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-
-import java.util.*;
+import java.util.List;
 
 @RestController
 @RequestMapping("api/books")
@@ -23,25 +21,27 @@ public class BookController {
 
 
     @GetMapping("")
-    public List<Book> getBooks(){
-        return bookService.listAllBooks();
+    public ResponseEntity<List<Book>> getBooks(){
+        if(bookService.listAllBooks().isEmpty()){
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        return  new ResponseEntity<>(bookService.listAllBooks(),HttpStatus.OK);
     }
 
     @PostMapping("")
     public ResponseEntity<?> addBook(@RequestBody Book book){
         if (!book.getTitle().isEmpty() && !book.getAuthor().isEmpty() && !book.getPublisher().isEmpty()) {
             bookService.saveBook(book);
-            return ResponseEntity.status(HttpStatus.OK).body("Book added");
+            return ResponseEntity.status(HttpStatus.OK).contentType(MediaType.APPLICATION_JSON).body("Book added");
         }else{
             return ResponseEntity.badRequest().contentType(MediaType.APPLICATION_JSON).body("Bad request");
         }
-
     }
 
 
     @GetMapping("/getEvenBooks")
     public  ResponseEntity<?> getEvenBooks(){
-        List<Book> books = bookService.listAllBooks();
+        List<Book> books = bookService.listAllBooksAsc();
         //Creating JSON array
         JSONArray jo1 = new JSONArray();
 
